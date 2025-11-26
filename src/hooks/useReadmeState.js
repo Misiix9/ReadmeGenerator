@@ -67,15 +67,16 @@ export const useReadmeState = () => {
     };
 
     const reorderSections = (activeId, overId) => {
-        setSections((items) => {
-            const oldIndex = items.findIndex((item) => item.id === activeId);
-            const newIndex = items.findIndex((item) => item.id === overId);
-            return arrayMove(items, oldIndex, newIndex);
+        setSections((prev) => {
+            const oldIndex = prev.findIndex((s) => s.id === activeId);
+            const newIndex = prev.findIndex((s) => s.id === overId);
+            return arrayMove(prev, oldIndex, newIndex);
         });
     };
 
     return {
         sections,
+        setSections, // Expose this for imports
         addSection,
         removeSection,
         updateSection,
@@ -83,3 +84,4 @@ export const useReadmeState = () => {
         reorderSections,
     };
 };
+

@@ -1,6 +1,5 @@
-
-import React from 'react';
-import { GripVertical, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useState } from 'react';
+import { GripVertical, Trash2, ChevronDown, ChevronUp, Wand2, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import HeaderEditor from './editors/HeaderEditor';
 import TextEditor from './editors/TextEditor';
@@ -8,8 +7,11 @@ import ImageEditor from './editors/ImageEditor';
 import CodeEditor from './editors/CodeEditor';
 import BadgeGenerator from './generators/BadgeGenerator';
 import TableBuilder from './generators/TableBuilder';
+import { generateSectionContent } from '../services/gemini';
 
 const SectionItem = ({ section, onRemove, onToggle, onUpdate, dragListeners }) => {
+    const [generating, setGenerating] = useState(false);
+
     const renderEditor = () => {
         const props = {
             content: section.content,
@@ -34,6 +36,29 @@ const SectionItem = ({ section, onRemove, onToggle, onUpdate, dragListeners }) =
         }
     };
 
+    const handleAutoFill = async () => {
+        setGenerating(true);
+        try {
+            // Infer context from title or type
+            const context = section.content.title || section.type;
+            const content = await generateSectionContent(section.type, context);
+
+            // Update based on type
+            if (section.type === 'text') {
+                onUpdate(section.id, { ...section.content, text: content });
+            } else if (section.type === 'header') {
+                onUpdate(section.id, { ...section.content, description: content });
+            }
+        } catch (error) {
+            console.error("Auto-fill failed:", error);
+            alert("Auto-fill failed. Check API Key.");
+        }
+        setGenerating(false);
+    };
+
+    // Only show auto-fill for certain types
+    const showAutoFill = ['header', 'text'].includes(section.type);
+
     return (
         <div className="bg-surface border border-white/10 rounded-lg overflow-hidden mb-3 shadow-sm group">
             <div className="flex items-center p-3 bg-surface/50 border-b border-white/5">
@@ -50,6 +75,16 @@ const SectionItem = ({ section, onRemove, onToggle, onUpdate, dragListeners }) =
                     {section.content.title || section.content.text || section.content.url || 'Untitled Section'}
                 </div>
                 <div className="flex items-center gap-1">
+                    {showAutoFill && (
+                        <button
+                            onClick={handleAutoFill}
+                            disabled={generating}
+                            className="p-1 text-purple-400 hover:text-purple-300 transition-colors mr-2"
+                            title="Auto-Fill with AI"
+                        >
+                            {generating ? <Loader2 className="w-4 h-4 animate-spin" /> : <Wand2 className="w-4 h-4" />}
+                        </button>
+                    )}
                     <button
                         onClick={() => onToggle(section.id)}
                         className="p-1 text-gray-500 hover:text-white transition-colors"

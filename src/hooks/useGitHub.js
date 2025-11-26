@@ -52,5 +52,44 @@ export const useGitHub = () => {
         });
     };
 
-    return { user, loading, login, logout, pushToRepo };
+    const fetchRepositories = async () => {
+        // Mock data for now since we don't have a real token
+        console.log("Mocking fetch repositories...");
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve([
+                    { id: 1, name: 'readme-generator', full_name: 'user/readme-generator' },
+                    { id: 2, name: 'awesome-project', full_name: 'user/awesome-project' },
+                    { id: 3, name: 'react-app', full_name: 'user/react-app' },
+                ]);
+            }, 1000);
+        });
+    };
+
+    const fetchFileContent = async (repoFullName, path) => {
+        console.log(`Mocking fetch file ${path} from ${repoFullName}...`);
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve("# Imported README\n\nThis is a mocked imported readme content.");
+            }, 1000);
+        });
+    };
+
+    const createPullRequest = async (repoFullName, title, body, head, base = 'main') => {
+        console.log(`Mocking PR creation in ${repoFullName}...`);
+        console.log(`Title: ${title}`);
+        console.log(`Head: ${head}, Base: ${base}`);
+
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve({
+                    success: true,
+                    message: "Mock PR created successfully!",
+                    html_url: `https://github.com/${repoFullName}/pull/1`
+                });
+            }, 1500);
+        });
+    };
+
+    return { user, loading, login, logout, pushToRepo, fetchRepositories, fetchFileContent, createPullRequest };
 };
