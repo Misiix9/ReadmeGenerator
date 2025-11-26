@@ -7,7 +7,7 @@ import ImageEditor from './editors/ImageEditor';
 import CodeEditor from './editors/CodeEditor';
 import BadgeGenerator from './generators/BadgeGenerator';
 import TableBuilder from './generators/TableBuilder';
-import { generateSectionContent } from '../services/gemini';
+import { generateSectionContent } from '../services/ai';
 
 const SectionItem = ({ section, onRemove, onToggle, onUpdate, dragListeners }) => {
     const [generating, setGenerating] = useState(false);

@@ -14,6 +14,7 @@ import {
     verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import SortableItem from './SortableItem';
+import SectionItem from './SectionItem';
 import { Plus, Type, Image, Code, Hash, Shield, Table, Palette, Network, BarChart3, Scale, Box } from 'lucide-react';
 import RepoAnalyzer from './generators/RepoAnalyzer';
 import BannerDesigner from './editors/BannerDesigner';
@@ -100,7 +101,7 @@ const SectionList = ({ sections, onRemove, onToggle, onUpdate, onReorder, onAdd 
                 {activeTool === 'license' && <LicensePicker onAdd={(type, content) => { onAdd(type, content); setActiveTool(null); }} />}
                 {activeTool === 'embed' && <EmbedGenerator onAdd={(type, content) => { onAdd(type, content); setActiveTool(null); }} />}
 
-                <RepoAnalyzer />
+                <RepoAnalyzer onAdd={onAdd} />
 
                 <h3 className="text-xs font-bold text-gray-500 uppercase tracking-wider mt-6 mb-2">Add Section</h3>
                 <div className="grid grid-cols-2 gap-2">

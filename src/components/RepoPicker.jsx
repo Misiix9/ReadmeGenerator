@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import { Github, Loader2, Download, FileCode } from 'lucide-react';
+import { Github, Loader2, Download, FileCode, Plus, Check } from 'lucide-react';
 import { useGitHub } from '../hooks/useGitHub';
+import CreateRepoModal from './CreateRepoModal';
 
-const RepoPicker = ({ onImport, onClose }) => {
+const RepoPicker = ({ onImport, onSelect, onClose, mode = 'import' }) => {
     const { user, login, fetchRepositories, fetchFileContent } = useGitHub();
     const [repos, setRepos] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedRepo, setSelectedRepo] = useState(null);
     const [importing, setImporting] = useState(false);
+    const [isCreateOpen, setIsCreateOpen] = useState(false);
 
     useEffect(() => {
         if (user) {
@@ -26,15 +28,21 @@ const RepoPicker = ({ onImport, onClose }) => {
         setLoading(false);
     };
 
-    const handleImport = async () => {
+    const handleAction = async () => {
         if (!selectedRepo) return;
+
+        if (mode === 'select') {
+            onSelect(selectedRepo);
+            onClose();
+            return;
+        }
+
+        // Import Mode
         setImporting(true);
         try {
-            // Try to fetch README.md (or readme.md, README.txt etc)
-            // For now, hardcode README.md
             const content = await fetchFileContent(selectedRepo.full_name, 'README.md');
             if (content) {
-                onImport(content); // We will need to parse this later
+                onImport(content);
                 onClose();
             } else {
                 alert('No README.md found in this repository.');
@@ -44,6 +52,11 @@ const RepoPicker = ({ onImport, onClose }) => {
             alert("Failed to import README.");
         }
         setImporting(false);
+    };
+
+    const handleRepoCreated = (newRepo) => {
+        setRepos([newRepo, ...repos]);
+        setSelectedRepo(newRepo);
     };
 
     if (!user) {
@@ -64,10 +77,19 @@ const RepoPicker = ({ onImport, onClose }) => {
 
     return (
         <div className="p-6 w-full max-w-2xl mx-auto">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-                <Download className="w-5 h-5 text-primary" />
-                Import from GitHub
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                    <Download className="w-5 h-5 text-primary" />
+                    {mode === 'select' ? 'Select Repository' : 'Import from GitHub'}
+                </h2>
+                <button
+                    onClick={() => setIsCreateOpen(true)}
+                    className="flex items-center gap-1 text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                    <Plus className="w-4 h-4" />
+                    New Repository
+                </button>
+            </div>
 
             {loading ? (
                 <div className="flex justify-center py-8">
@@ -81,8 +103,8 @@ const RepoPicker = ({ onImport, onClose }) => {
                                 key={repo.id}
                                 onClick={() => setSelectedRepo(repo)}
                                 className={`p-3 rounded-lg border text-left transition-all ${selectedRepo?.id === repo.id
-                                        ? 'bg-primary/20 border-primary text-white'
-                                        : 'bg-surface border-white/10 text-gray-300 hover:bg-white/5'
+                                    ? 'bg-primary/20 border-primary text-white'
+                                    : 'bg-surface border-white/10 text-gray-300 hover:bg-white/5'
                                     }`}
                             >
                                 <div className="font-medium truncate">{repo.name}</div>
@@ -99,16 +121,22 @@ const RepoPicker = ({ onImport, onClose }) => {
                             Cancel
                         </button>
                         <button
-                            onClick={handleImport}
+                            onClick={handleAction}
                             disabled={!selectedRepo || importing}
                             className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCode className="w-4 h-4" />}
-                            Import README
+                            {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : (mode === 'select' ? <Check className="w-4 h-4" /> : <FileCode className="w-4 h-4" />)}
+                            {mode === 'select' ? 'Select Repository' : 'Import README'}
                         </button>
                     </div>
                 </div>
             )}
+
+            <CreateRepoModal
+                isOpen={isCreateOpen}
+                onClose={() => setIsCreateOpen(false)}
+                onCreate={handleRepoCreated}
+            />
         </div>
     );
 };

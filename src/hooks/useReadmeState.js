@@ -14,7 +14,7 @@ export const useReadmeState = () => {
         },
     ]);
 
-    const addSection = (type) => {
+    const addSection = (type, initialContent = {}) => {
         let defaultContent = {};
         switch (type) {
             case 'header':
@@ -40,12 +40,12 @@ export const useReadmeState = () => {
         }
 
         const newSection = {
-            id: `${type}-${Date.now()}`,
+            id: `${type}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
             type,
             isOpen: true,
-            content: defaultContent,
+            content: { ...defaultContent, ...initialContent },
         };
-        setSections([...sections, newSection]);
+        setSections((prev) => [...prev, newSection]);
     };
 
     const removeSection = (id) => {

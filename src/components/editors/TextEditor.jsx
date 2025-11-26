@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Wand2, Loader2, Sparkles } from 'lucide-react';
 import Textarea from './Textarea';
-import { generateSectionContent } from '../../services/gemini';
+import { generateSectionContent } from '../../services/ai';
 
 const TextEditor = ({ content, onChange }) => {
     const [generating, setGenerating] = useState(false);
