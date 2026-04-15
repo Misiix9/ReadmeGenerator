@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Wand2, Loader2, Check, Github } from 'lucide-react';
-import { analyzeRepo } from '../../services/ai';
+import { analyzeRepo, hasConfiguredApiKey } from '../../services/ai';
 import { useGitHub } from '../../hooks/useGitHub';
 import RepoPicker from '../RepoPicker';
 
@@ -10,10 +10,19 @@ const RepoAnalyzer = ({ onAdd }) => {
     const [analyzing, setAnalyzing] = useState(false);
     const [selectedRepo, setSelectedRepo] = useState(null);
     const [isPickerOpen, setIsPickerOpen] = useState(false);
+    const openSettingsModal = () => {
+        window.dispatchEvent(new CustomEvent('open-ai-settings'));
+    };
 
     const handleAnalyze = async () => {
         if (!selectedRepo) {
             setIsPickerOpen(true);
+            return;
+        }
+
+        if (!hasConfiguredApiKey()) {
+            alert('No API key found for the selected AI provider. Please add it in Settings.');
+            openSettingsModal();
             return;
         }
 
@@ -100,9 +109,16 @@ const RepoAnalyzer = ({ onAdd }) => {
             }
         } catch (error) {
             console.error("Analysis failed:", error);
-            alert("Analysis failed. Check console and API Key.");
+            const message = error instanceof Error ? error.message : 'Unknown error.';
+            if (/api key not set/i.test(message)) {
+                alert(`${message} Open Settings to add your key.`);
+                openSettingsModal();
+                return;
+            }
+            alert(`Analysis failed: ${message}`);
+        } finally {
+            setAnalyzing(false);
         }
-        setAnalyzing(false);
     };
 
     return (

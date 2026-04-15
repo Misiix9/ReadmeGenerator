@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { FileText, LogIn, LogOut, User, Settings } from 'lucide-react';
 import { useGitHub } from '../hooks/useGitHub';
 import ExportMenu from './ExportMenu';
@@ -7,6 +7,12 @@ import SettingsModal from './SettingsModal';
 const Navbar = ({ sections }) => {
     const { user, login, logout } = useGitHub();
     const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+    useEffect(() => {
+        const openSettings = () => setIsSettingsOpen(true);
+        window.addEventListener('open-ai-settings', openSettings);
+        return () => window.removeEventListener('open-ai-settings', openSettings);
+    }, []);
 
     return (
         <>

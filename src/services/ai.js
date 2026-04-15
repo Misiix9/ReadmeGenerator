@@ -10,6 +10,8 @@ let apiKeys = {
     anthropic: ''
 };
 
+const normalizeApiKey = (value) => (typeof value === 'string' ? value.trim() : '');
+
 export const PROVIDERS = {
     google: { name: 'Google Gemini', models: ['gemini-2.5-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
     openai: { name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
@@ -19,7 +21,12 @@ export const PROVIDERS = {
 export const configureAI = (provider, model, keys) => {
     currentProvider = provider;
     currentModel = model;
-    apiKeys = { ...apiKeys, ...keys };
+    const nextKeys = { ...apiKeys, ...keys };
+    apiKeys = {
+        google: normalizeApiKey(nextKeys.google),
+        openai: normalizeApiKey(nextKeys.openai),
+        anthropic: normalizeApiKey(nextKeys.anthropic)
+    };
 
     // Initialize specific provider if needed
     if (provider === 'google') gemini.initialize(apiKeys.google, model);
@@ -27,9 +34,13 @@ export const configureAI = (provider, model, keys) => {
     if (provider === 'anthropic') anthropic.initialize(apiKeys.anthropic, model);
 };
 
+export const hasConfiguredApiKey = (provider = currentProvider) =>
+    Boolean(normalizeApiKey(apiKeys[provider]));
+
 export const generateText = async (prompt) => {
-    const key = apiKeys[currentProvider];
-    if (!key) throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    if (!hasConfiguredApiKey()) {
+        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    }
 
     if (currentProvider === 'google') return gemini.generateText(prompt);
     if (currentProvider === 'openai') return openai.generateText(prompt);
@@ -40,8 +51,9 @@ export const generateText = async (prompt) => {
 
 
 export const analyzeRepo = async (fileTree, fileContents) => {
-    const key = apiKeys[currentProvider];
-    if (!key) throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    if (!hasConfiguredApiKey()) {
+        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    }
 
     // Ultimate Prompt Engineering: Deep Context & Specificity
     const prompt = `
@@ -104,15 +116,16 @@ export const analyzeRepo = async (fileTree, fileContents) => {
     const jsonStr = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
     try {
         return JSON.parse(jsonStr);
-    } catch (e) {
+    } catch {
         console.error("Failed to parse AI response as JSON:", responseText);
         throw new Error("AI response was not valid JSON.");
     }
 };
 
 export const generateSectionContent = async (type, context = "") => {
-    const key = apiKeys[currentProvider];
-    if (!key) throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    if (!hasConfiguredApiKey()) {
+        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
+    }
 
     let prompt = "";
     const role = "You are an expert Technical Writer. Write a specific section for a GitHub README.md.";
