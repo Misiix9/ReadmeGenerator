@@ -21,7 +21,7 @@ export const useGitHub = () => {
 
     const login = async () => {
         if (!auth) {
-            alert("GitHub login is unavailable because Firebase is not configured.");
+            console.warn("GitHub login is unavailable because Firebase is not configured.");
             return;
         }
         const provider = new GithubAuthProvider();
