@@ -27,31 +27,3 @@ Using the deployed application is the easiest way to get started!
 ```
 
 This README was made only with this tool.
-
-## 🔐 Firebase + GitHub Auth Setup
-
-This app requires Firebase web config values at build time for GitHub login.
-
-1. Create a Firebase project and add a **Web app**.
-2. Copy config values from Firebase Console → **Project settings** → **General** → **Your apps**.
-3. Create a local `.env` file from `.env.example` and fill:
-   - `VITE_FIREBASE_API_KEY`
-   - `VITE_FIREBASE_AUTH_DOMAIN`
-   - `VITE_FIREBASE_PROJECT_ID`
-   - `VITE_FIREBASE_STORAGE_BUCKET`
-   - `VITE_FIREBASE_MESSAGING_SENDER_ID`
-   - `VITE_FIREBASE_APP_ID`
-4. In Firebase Console → **Authentication** → **Sign-in method**, enable **GitHub** provider.
-5. In GitHub → **Settings** → **Developer settings** → **OAuth Apps**, create an OAuth app and copy Client ID/Secret into Firebase GitHub provider settings.
-6. In Firebase Authentication → **Settings** → **Authorized domains**, add your deployment domain.
-
-### GitHub Pages secrets
-
-For GitHub Actions deployment, add these repository secrets with the same names:
-
-- `VITE_FIREBASE_API_KEY`
-- `VITE_FIREBASE_AUTH_DOMAIN`
-- `VITE_FIREBASE_PROJECT_ID`
-- `VITE_FIREBASE_STORAGE_BUCKET`
-- `VITE_FIREBASE_MESSAGING_SENDER_ID`
-- `VITE_FIREBASE_APP_ID`
