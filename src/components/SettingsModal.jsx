@@ -4,6 +4,10 @@ import { configureAI, PROVIDERS } from '../services/ai';
 
 const DEFAULT_PROVIDER = 'google';
 const DEFAULT_KEYS = { google: '', openai: '', anthropic: '' };
+const getValidModelForProvider = (provider, candidateModel) => {
+    const models = PROVIDERS[provider].models;
+    return candidateModel && models.includes(candidateModel) ? candidateModel : models[0];
+};
 
 const loadStoredSettings = () => {
     const settings = {
@@ -38,10 +42,7 @@ const loadStoredSettings = () => {
         }
 
         const storedModel = localStorage.getItem('ai_model');
-        const allowedModels = PROVIDERS[settings.provider].models;
-        settings.model = storedModel && allowedModels.includes(storedModel)
-            ? storedModel
-            : allowedModels[0];
+        settings.model = getValidModelForProvider(settings.provider, storedModel);
     } catch (error) {
         console.warn('Failed to read AI settings from browser storage:', error);
     }
@@ -57,15 +58,13 @@ const SettingsModal = ({ isOpen, onClose }) => {
 
     useEffect(() => {
         configureAI(initialSettings.provider, initialSettings.model, initialSettings.keys);
-    }, [initialSettings]);
+    }, []);
 
     const handleProviderChange = (nextProvider) => {
         if (!PROVIDERS[nextProvider]) return;
         setProvider(nextProvider);
         setModel((currentModel) =>
-            PROVIDERS[nextProvider].models.includes(currentModel)
-                ? currentModel
-                : PROVIDERS[nextProvider].models[0]
+            getValidModelForProvider(nextProvider, currentModel)
         );
     };
 
