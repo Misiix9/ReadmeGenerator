@@ -3,7 +3,6 @@ import * as openai from './openai';
 import * as anthropic from './anthropic';
 
 let currentProvider = 'google';
-let currentModel = 'gemini-1.5-pro';
 let apiKeys = {
     google: '',
     openai: '',
@@ -20,7 +19,6 @@ export const PROVIDERS = {
 
 export const configureAI = (provider, model, keys) => {
     currentProvider = provider;
-    currentModel = model;
     const nextKeys = { ...apiKeys, ...keys };
     apiKeys = {
         google: normalizeApiKey(nextKeys.google),
