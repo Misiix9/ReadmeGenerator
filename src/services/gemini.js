@@ -1,7 +1,7 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const DEFAULT_MODEL = "gemini-2.5-pro";
-const FALLBACK_MODELS = ["gemini-2.5-pro", "gemini-2.5-flash", "gemini-2.0-flash"];
+const FALLBACK_MODELS = ["gemini-2.5-flash", "gemini-2.0-flash"];
 
 let genAI = null;
 let model = null;
@@ -14,7 +14,7 @@ const getModelCandidates = () => {
 
 const isModelUnavailableError = (error) => {
     const code = error?.status ?? error?.code;
-    const message = `${error?.message || ''}`.toLowerCase();
+    const message = String(error?.message || '').toLowerCase();
 
     return (
         code === 404 ||
