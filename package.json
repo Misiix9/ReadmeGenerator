@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://misiix9.github.io/ReadmeGenerator",
+  "homepage": "https://misiix9.github.io/readmegenerator",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

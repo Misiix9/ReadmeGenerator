@@ -20,7 +20,7 @@ Struggling to write compelling READMEs? This AI-powered tool analyzes your GitHu
 
 Using the deployed application is the easiest way to get started!
 
-1.  🌐 **Visit the Live App**: Navigate to the [deployed application URL](https://<USERNAME>.github.io/Readme-Generator).
+1.  🌐 **Visit the Live App**: Navigate to the [deployed application URL](https://misiix9.github.io/readmegenerator).
 2.  🔍 **Select a Repository**: Connect your GitHub account and choose the repository you want to generate a README for.
 3.  ✨ **Customize**: Use the drag-and-drop interface to reorder sections. Click on any section to edit the AI-generated content.
 4.  📋 **Export**: Once you're happy with the result, use the **Export Menu** to copy the raw Markdown to your clipboard or download the `README.md` file directly.
