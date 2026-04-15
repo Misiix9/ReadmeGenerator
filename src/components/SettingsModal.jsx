@@ -2,39 +2,86 @@ import React, { useState, useEffect } from 'react';
 import { Settings, Save, X } from 'lucide-react';
 import { configureAI, PROVIDERS } from '../services/ai';
 
-const SettingsModal = ({ isOpen, onClose }) => {
-    const [provider, setProvider] = useState('google');
-    const [model, setModel] = useState('gemini-1.5-pro');
-    const [keys, setKeys] = useState({ google: '', openai: '', anthropic: '' });
+const DEFAULT_PROVIDER = 'google';
+const DEFAULT_KEYS = { google: '', openai: '', anthropic: '' };
 
-    useEffect(() => {
-        const storedProvider = localStorage.getItem('ai_provider') || 'google';
-        const storedModel = localStorage.getItem('ai_model') || 'gemini-1.5-pro';
-        const storedKeys = JSON.parse(localStorage.getItem('ai_keys') || '{}');
+const loadStoredSettings = () => {
+    const settings = {
+        provider: DEFAULT_PROVIDER,
+        model: PROVIDERS[DEFAULT_PROVIDER].models[0],
+        keys: { ...DEFAULT_KEYS }
+    };
 
-        setProvider(storedProvider);
-        setModel(storedModel);
-        setKeys({ google: '', openai: '', anthropic: '', ...storedKeys });
-
-        // Initialize AI on load
-        configureAI(storedProvider, storedModel, storedKeys);
-    }, []);
-
-    // Update model when provider changes
-    useEffect(() => {
-        if (PROVIDERS[provider] && !PROVIDERS[provider].models.includes(model)) {
-            setModel(PROVIDERS[provider].models[0]);
+    try {
+        const storedProvider = localStorage.getItem('ai_provider');
+        if (storedProvider && PROVIDERS[storedProvider]) {
+            settings.provider = storedProvider;
         }
-    }, [provider]);
+
+        const rawKeys = localStorage.getItem('ai_keys');
+        if (rawKeys) {
+            try {
+                const parsedKeys = JSON.parse(rawKeys);
+                if (parsedKeys && typeof parsedKeys === 'object' && !Array.isArray(parsedKeys)) {
+                    settings.keys = {
+                        ...DEFAULT_KEYS,
+                        ...Object.fromEntries(
+                            Object.entries(parsedKeys).filter(
+                                ([key, value]) => key in DEFAULT_KEYS && typeof value === 'string'
+                            )
+                        )
+                    };
+                }
+            } catch {
+                localStorage.removeItem('ai_keys');
+            }
+        }
+
+        const storedModel = localStorage.getItem('ai_model');
+        const allowedModels = PROVIDERS[settings.provider].models;
+        settings.model = storedModel && allowedModels.includes(storedModel)
+            ? storedModel
+            : allowedModels[0];
+    } catch (error) {
+        console.warn('Failed to read AI settings from browser storage:', error);
+    }
+
+    return settings;
+};
+
+const SettingsModal = ({ isOpen, onClose }) => {
+    const [initialSettings] = useState(() => loadStoredSettings());
+    const [provider, setProvider] = useState(initialSettings.provider);
+    const [model, setModel] = useState(initialSettings.model);
+    const [keys, setKeys] = useState(initialSettings.keys);
+
+    useEffect(() => {
+        configureAI(initialSettings.provider, initialSettings.model, initialSettings.keys);
+    }, [initialSettings]);
+
+    const handleProviderChange = (nextProvider) => {
+        if (!PROVIDERS[nextProvider]) return;
+        setProvider(nextProvider);
+        setModel((currentModel) =>
+            PROVIDERS[nextProvider].models.includes(currentModel)
+                ? currentModel
+                : PROVIDERS[nextProvider].models[0]
+        );
+    };
 
     const handleSave = () => {
-        localStorage.setItem('ai_provider', provider);
-        localStorage.setItem('ai_model', model);
-        localStorage.setItem('ai_keys', JSON.stringify(keys));
-
         configureAI(provider, model, keys);
         onClose();
-        alert('Settings saved successfully!');
+
+        try {
+            localStorage.setItem('ai_provider', provider);
+            localStorage.setItem('ai_model', model);
+            localStorage.setItem('ai_keys', JSON.stringify(keys));
+            alert('Settings saved successfully!');
+        } catch (error) {
+            console.warn('Failed to persist AI settings to browser storage:', error);
+            alert('Settings applied for this session, but could not be saved in browser storage.');
+        }
     };
 
     if (!isOpen) return null;
@@ -58,7 +105,7 @@ const SettingsModal = ({ isOpen, onClose }) => {
                         <label className="block text-sm font-medium text-gray-300 mb-1">AI Provider</label>
                         <select
                             value={provider}
-                            onChange={(e) => setProvider(e.target.value)}
+                            onChange={(e) => handleProviderChange(e.target.value)}
                             className="w-full bg-background border border-white/10 rounded-lg px-3 py-2 text-white focus:border-primary outline-none"
                         >
                             {Object.entries(PROVIDERS).map(([key, val]) => (
