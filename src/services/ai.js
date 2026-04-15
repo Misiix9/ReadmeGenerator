@@ -11,8 +11,10 @@ let apiKeys = {
 
 const normalizeApiKey = (value) => (typeof value === 'string' ? value.trim() : '');
 
+const GOOGLE_MODELS = ['gemini-2.5-pro', 'gemini-2.5-flash', 'gemini-2.0-flash'];
+
 export const PROVIDERS = {
-    google: { name: 'Google Gemini', models: ['gemini-2.5-pro', 'gemini-1.5-pro', 'gemini-1.5-flash'] },
+    google: { name: 'Google Gemini', models: GOOGLE_MODELS },
     openai: { name: 'OpenAI', models: ['gpt-4o', 'gpt-4-turbo', 'gpt-3.5-turbo'] },
     anthropic: { name: 'Anthropic', models: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'] }
 };
