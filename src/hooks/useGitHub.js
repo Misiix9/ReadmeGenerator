@@ -4,11 +4,28 @@ import { auth } from '../firebase';
 
 export const useGitHub = () => {
     const [user, setUser] = useState(null);
-    const [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(Boolean(auth));
+
+    const getLoginErrorMessage = (error) => {
+        const code = error?.code;
+
+        if (code === 'auth/popup-closed-by-user') {
+            return 'Login popup was closed before completing sign in.';
+        }
+        if (code === 'auth/popup-blocked') {
+            return 'Your browser blocked the login popup. Please allow popups for this site and try again.';
+        }
+        if (code === 'auth/operation-not-allowed') {
+            return 'GitHub login is not enabled in your Firebase project. Enable GitHub provider in Firebase Authentication.';
+        }
+        if (code === 'auth/unauthorized-domain') {
+            return 'This domain is not authorized in Firebase Authentication. Add the site domain to Authorized domains.';
+        }
+        return 'Login failed. Please try again.';
+    };
 
     useEffect(() => {
         if (!auth) {
-            setLoading(false);
             return;
         }
 
@@ -21,22 +38,25 @@ export const useGitHub = () => {
 
     const login = async () => {
         if (!auth) {
-            console.warn("GitHub login is unavailable because Firebase is not configured.");
-            return;
+            alert("GitHub login is unavailable because Firebase config is missing. Add VITE_FIREBASE_* values and redeploy.");
+            return false;
         }
         const provider = new GithubAuthProvider();
         provider.addScope('repo'); // Request access to write to repos
+        provider.addScope('read:user');
         try {
             const result = await signInWithPopup(auth, provider);
             // This gives you a GitHub Access Token. You can use it to access the GitHub API.
             const credential = GithubAuthProvider.credentialFromResult(result);
-            const token = credential.accessToken;
+            const token = credential?.accessToken;
             if (token) {
                 sessionStorage.setItem('github_access_token', token);
             }
+            return true;
         } catch (error) {
             console.error("Login failed:", error);
-            alert("Login failed. Check console for details.");
+            alert(getLoginErrorMessage(error));
+            return false;
         }
     };
 
@@ -117,7 +137,7 @@ export const useGitHub = () => {
         // For now, let's just implement Update File (Direct Push) or return mock if too complex for this step.
         // User asked for "Create PR", so we'll focus on that in createPullRequest.
         // This function might be "Commit to Branch".
-        return { success: false, message: "Use Create PR instead." };
+        return { success: false, message: `Direct push is not configured for ${repoName} (${branch}). Use Create PR instead.` };
     };
 
     const createPullRequest = async (repoFullName, title, body, head, base = 'main') => {
@@ -187,5 +207,5 @@ export const useGitHub = () => {
         return treeData.tree.slice(0, 20).map(item => item.path);
     };
 
-    return { user, loading, login, logout, fetchRepositories, fetchFileContent, createRepository, fetchFileTree, createPullRequest };
+    return { user, loading, login, logout, fetchRepositories, fetchFileContent, createRepository, fetchFileTree, createPullRequest, pushToRepo };
 };

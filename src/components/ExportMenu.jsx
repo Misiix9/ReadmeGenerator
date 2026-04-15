@@ -34,8 +34,8 @@ const ExportMenu = ({ sections }) => {
 
     const handlePush = async () => {
         if (!user) {
-            login();
-            return;
+            const loggedIn = await login();
+            if (!loggedIn) return;
         }
 
         const markdown = generateMarkdown(sections);
@@ -43,6 +43,11 @@ const ExportMenu = ({ sections }) => {
         // Mock repo selection for now
         const repo = prompt("Enter repository name (e.g., username/repo):", "my-project");
         if (repo) {
+            if (typeof pushToRepo !== 'function') {
+                alert("Push action is currently unavailable. Please refresh and try again.");
+                setPushing(false);
+                return;
+            }
             await pushToRepo(repo, markdown);
             alert("Successfully pushed to GitHub (Mock)!");
         }
