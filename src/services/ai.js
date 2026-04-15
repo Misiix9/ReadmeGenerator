@@ -17,14 +17,19 @@ export const PROVIDERS = {
     anthropic: { name: 'Anthropic', models: ['claude-3-5-sonnet-20240620', 'claude-3-opus-20240229', 'claude-3-sonnet-20240229'] }
 };
 
+export class ApiKeyMissingError extends Error {
+    constructor(provider) {
+        super(`${PROVIDERS[provider].name} API key not set.`);
+        this.name = 'ApiKeyMissingError';
+    }
+}
+
 export const configureAI = (provider, model, keys) => {
     currentProvider = provider;
     const nextKeys = { ...apiKeys, ...keys };
-    apiKeys = {
-        google: normalizeApiKey(nextKeys.google),
-        openai: normalizeApiKey(nextKeys.openai),
-        anthropic: normalizeApiKey(nextKeys.anthropic)
-    };
+    apiKeys = Object.fromEntries(
+        Object.entries(nextKeys).map(([key, value]) => [key, normalizeApiKey(value)])
+    );
 
     // Initialize specific provider if needed
     if (provider === 'google') gemini.initialize(apiKeys.google, model);
@@ -32,13 +37,21 @@ export const configureAI = (provider, model, keys) => {
     if (provider === 'anthropic') anthropic.initialize(apiKeys.anthropic, model);
 };
 
-export const hasConfiguredApiKey = (provider = currentProvider) =>
-    Boolean(normalizeApiKey(apiKeys[provider]));
+export const hasConfiguredApiKey = (provider = currentProvider) => {
+    if (!Object.prototype.hasOwnProperty.call(PROVIDERS, provider)) {
+        return false;
+    }
+    return Boolean(normalizeApiKey(apiKeys[provider]));
+};
+
+const assertConfiguredApiKey = (provider = currentProvider) => {
+    if (!hasConfiguredApiKey(provider)) {
+        throw new ApiKeyMissingError(provider);
+    }
+};
 
 export const generateText = async (prompt) => {
-    if (!hasConfiguredApiKey()) {
-        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
-    }
+    assertConfiguredApiKey();
 
     if (currentProvider === 'google') return gemini.generateText(prompt);
     if (currentProvider === 'openai') return openai.generateText(prompt);
@@ -49,9 +62,7 @@ export const generateText = async (prompt) => {
 
 
 export const analyzeRepo = async (fileTree, fileContents) => {
-    if (!hasConfiguredApiKey()) {
-        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
-    }
+    assertConfiguredApiKey();
 
     // Ultimate Prompt Engineering: Deep Context & Specificity
     const prompt = `
@@ -121,9 +132,7 @@ export const analyzeRepo = async (fileTree, fileContents) => {
 };
 
 export const generateSectionContent = async (type, context = "") => {
-    if (!hasConfiguredApiKey()) {
-        throw new Error(`${PROVIDERS[currentProvider].name} API key not set.`);
-    }
+    assertConfiguredApiKey();
 
     let prompt = "";
     const role = "You are an expert Technical Writer. Write a specific section for a GitHub README.md.";

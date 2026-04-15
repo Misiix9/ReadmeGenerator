@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Wand2, Loader2, Check, Github } from 'lucide-react';
-import { analyzeRepo, hasConfiguredApiKey } from '../../services/ai';
+import { analyzeRepo, ApiKeyMissingError, hasConfiguredApiKey } from '../../services/ai';
 import { useGitHub } from '../../hooks/useGitHub';
 import RepoPicker from '../RepoPicker';
 
@@ -109,12 +109,12 @@ const RepoAnalyzer = ({ onAdd }) => {
             }
         } catch (error) {
             console.error("Analysis failed:", error);
-            const message = error instanceof Error ? error.message : 'Unknown error.';
-            if (/api key not set/i.test(message)) {
-                alert(`${message} Open Settings to add your key.`);
+            if (error instanceof ApiKeyMissingError) {
+                alert(`${error.message} Open Settings to add your key.`);
                 openSettingsModal();
                 return;
             }
+            const message = error instanceof Error ? error.message : String(error);
             alert(`Analysis failed: ${message}`);
         } finally {
             setAnalyzing(false);
