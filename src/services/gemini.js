@@ -9,7 +9,7 @@ let activeModelName = DEFAULT_MODEL;
 
 const getModelCandidates = () => {
     const candidates = [activeModelName, ...FALLBACK_MODELS];
-    return [...new Set(candidates.filter(Boolean))];
+    return [...new Set(candidates)];
 };
 
 const isModelUnavailableError = (error) => {
