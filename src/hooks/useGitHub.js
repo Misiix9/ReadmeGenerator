@@ -7,6 +7,11 @@ export const useGitHub = () => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        if (!auth) {
+            setLoading(false);
+            return;
+        }
+
         const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
             setUser(currentUser);
             setLoading(false);
@@ -15,6 +20,10 @@ export const useGitHub = () => {
     }, []);
 
     const login = async () => {
+        if (!auth) {
+            alert("GitHub login is unavailable because Firebase is not configured.");
+            return;
+        }
         const provider = new GithubAuthProvider();
         provider.addScope('repo'); // Request access to write to repos
         try {
@@ -32,6 +41,9 @@ export const useGitHub = () => {
     };
 
     const logout = async () => {
+        if (!auth) {
+            return;
+        }
         try {
             await signOut(auth);
             sessionStorage.removeItem('github_access_token');
